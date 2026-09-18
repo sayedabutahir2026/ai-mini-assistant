@@ -1,0 +1,34 @@
+# guardrails/config.yml
+#
+# NeMo Guardrails configuration for a document QA assistant.
+#
+# models: the LLM used by the rails themselves.
+# We use the same fast model configured in settings.py - no extra key,
+# no extra provider, no extra cost.
+# FAST_MODEL_NAME is injected into os.environ by content_scanner.py
+# before RailsConfig.from_path() is called.
+#
+# instructions: tells NeMo what this bot does. Without this, NeMo's
+# dialog rail engine tries to run general conversation flows and
+# may interfere with our LCEL chain. Setting it explicitly scopes
+# NeMo to input/output checking only.
+
+models:
+  - type: main
+    engine: litellm
+    model: ${FAST_MODEL_NAME}
+
+instructions:
+  - type: general
+    content: |
+      You are a document question-answering assistant. You answer questions
+      based strictly on content retrieved from uploaded PDF documents.
+      You do not engage in general conversation.
+
+rails:
+  input:
+    flows:
+      - self check input
+  output:
+    flows:
+      - self check output

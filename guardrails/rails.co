@@ -1,0 +1,51 @@
+# guardrails/rails.co
+#
+# Colang defines the conversational flows - what to do when a rail triggers.
+#
+# For new joiners: Colang is NeMo's domain-specific language for dialogue flows.
+# It looks like Python but runs as a state machine over LLM conversations.
+# "user ask about something" is a user intent. "bot inform cannot help" is an
+# action. The "if" blocks are guards that fire before the main LLM call.
+
+# - Input rail -
+# The self_check_input flow is built into NeMo.
+# It sends the user message to the fast model with a classification prompt
+# and decides allow/block. If blocked, the predefined message is returned
+# without touching the main answer pipeline.
+
+define subflow self check input
+  $allowed = execute self_check_input
+
+  if not $allowed
+    bot refuse to respond
+    stop
+
+define bot refuse to respond
+  "I'm sorry, I can't respond to that. Please ask a question about the uploaded documents."
+
+# - Output rail -
+# The self_check_output flow runs after the main LLM generates an answer.
+# If the output fails the check, the predefined message is returned instead.
+
+define subflow self check output
+  $allowed = execute self_check_output
+
+  if not $allowed
+    bot inform answer unknown
+    stop
+
+define bot inform answer unknown
+  "I'm sorry, I wasn't able to generate a safe response. Please try rephrasing your question."
+
+# - Retrieval rail ------------------------------─
+# This is what no previous scanner approach covered:
+# Scanning the retrieved passages for injected instructions BEFORE
+# they reach the LLM's context window.
+# Any passage containing injection patterns is dropped silently.
+
+define subflow self check retrieved chunks
+  $allowed = execute self_check_retrieved_chunks
+
+  if not $allowed
+    bot refuse to respond
+    stop

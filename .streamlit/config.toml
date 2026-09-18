@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+
+[server]
+fileWatcherType = "watchdog"
+folderWatchBlacklist = [".venv", "index_store", "data", "__pycache__"]
+
+[logger]
+level = "warning"
