@@ -1,0 +1,8 @@
+.venv/
+.env
+index_store/
+data/
+__pycache__/
+*.pyc
+.DS_Store
+.throttle_log.json
